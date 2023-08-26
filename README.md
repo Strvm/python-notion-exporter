@@ -14,23 +14,6 @@
 - Monitor export progress with a progress bar.
 - Automatically unpack zipped export files.
 
-## Requirements
-
-- Python 3.6+
-- Dependencies:
-  - `enum`
-  - `os`
-  - `json`
-  - `requests`
-  - `datetime`
-  - `multiprocessing`
-  - `logging`
-  - `time`
-  - `shutil`
-  - `tqdm`
-
-Make sure to install the necessary libraries using `pip`.
-
 ## Usage
 
 1. **Initialization**:
@@ -58,5 +41,22 @@ Make sure to install the necessary libraries using `pip`.
    ```
 
    This will initiate the export, download, and unpacking processes for the pages defined.
+
+## Requirements
+
+- Python 3.6+
+- Dependencies:
+  - `enum`
+  - `os`
+  - `json`
+  - `requests`
+  - `datetime`
+  - `multiprocessing`
+  - `logging`
+  - `time`
+  - `shutil`
+  - `tqdm`
+
+Make sure to install the necessary libraries using `pip`.
 
 For more details or any issues, please raise a ticket or contact the maintainers.
