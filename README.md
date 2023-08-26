@@ -15,10 +15,18 @@
 - Automatically unpack zipped export files.
 
 ## Usage
+1. **Download**:
 
-1. **Initialization**:
+   ```bash
+   pip install python-notion-exporter
+   ```
+
+
+2. **Initialization**:
 
    ```python
+   from python_notion_exporter import NotionExporter
+   
    # Important to run in __main__ or in a method due to multiprocessing.
    if __name__ == "__main__":
        exporter = NotionExporter(
