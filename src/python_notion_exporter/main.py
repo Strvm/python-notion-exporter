@@ -6,7 +6,7 @@ import os
 import shutil
 import time
 from datetime import datetime
-from multiprocessing import Pool
+from multiprocessing import Pool, freeze_support
 
 import requests
 from tqdm import tqdm
@@ -58,12 +58,12 @@ class NotionExporter:
         self.workers = workers
         os.makedirs(f"{self.export_directory}{self.export_name}", exist_ok=True)
 
-    def to_uuid_format(self, s):
+    def _to_uuid_format(self, s):
         if "-" == s[8] and "-" == s[13] and "-" == s[18] and "-" == s[23]:
             return s
         return f"{s[:8]}-{s[8:12]}-{s[12:16]}-{s[16:20]}-{s[20:]}"
 
-    def get_format_options(self, export_type: ExportType, include_files=False):
+    def _get_format_options(self, export_type: ExportType, include_files=False):
         format_options = {}
         if export_type == ExportType.PDF:
             format_options["pdfFormat"] = "Letter"
@@ -73,9 +73,9 @@ class NotionExporter:
 
         return format_options
 
-    def export(self, id):
+    def _export(self, id):
         url = "https://www.notion.so/api/v3/enqueueTask"
-        id = self.to_uuid_format(s=id)
+        id = self._to_uuid_format(s=id)
         export_options = {
             "exportType": self.export_type.value,
             "locale": "en",
@@ -86,7 +86,7 @@ class NotionExporter:
 
         # Update the exportOptions with format-specific options
         export_options.update(
-            self.get_format_options(
+            self._get_format_options(
                 export_type=self.export_type, include_files=self.include_files
             )
         )
@@ -111,7 +111,7 @@ class NotionExporter:
         ).json()
         return response["taskId"]
 
-    def get_status(self, task_id):
+    def _get_status(self, task_id):
         url = "https://www.notion.so/api/v3/getTasks"
 
         payload = json.dumps({"taskIds": [task_id]})
@@ -121,7 +121,7 @@ class NotionExporter:
         ).json()["results"]
         return response[0]
 
-    def download(self, url):
+    def _download(self, url):
         response = requests.request("GET", url, headers=self.download_headers)
         file_name = url.split("/")[-1][100:]
         with open(
@@ -130,9 +130,9 @@ class NotionExporter:
         ) as f:
             f.write(response.content)
 
-    def process_page(self, page_details):
+    def _process_page(self, page_details):
         name, id = page_details
-        task_id = self.export(id)
+        task_id = self._export(id)
 
         status, state, error, pages_exported = self._wait_for_export_completion(
             task_id=task_id
@@ -143,7 +143,7 @@ class NotionExporter:
 
         export_url = status.get("status", {}).get("exportURL")
         if export_url:
-            self.download(export_url)
+            self._download(export_url)
         else:
             logging.warning(f"Failed to get exportURL for {name}")
 
@@ -157,7 +157,7 @@ class NotionExporter:
     def _wait_for_export_completion(self, task_id):
         """Helper method to wait until the export is complete or failed."""
         while True:
-            status = self.get_status(task_id)
+            status = self._get_status(task_id)
             # print(status)
 
             if not status:
@@ -174,7 +174,7 @@ class NotionExporter:
                 )
             time.sleep(1)
 
-    def unpack(self):
+    def _unpack(self):
         directory_path = f"{self.export_directory}{self.export_name}"
         for file in os.listdir(directory_path):
             if file.endswith(".zip"):
@@ -187,7 +187,7 @@ class NotionExporter:
         with Pool(processes=self.workers) as pool:
             with tqdm(total=len(self.pages), dynamic_ncols=True) as pbar:
                 for result in pool.imap_unordered(
-                    self.process_page, self.pages.items()
+                    self._process_page, self.pages.items()
                 ):
                     if result["state"] == "failure":
                         continue
@@ -199,4 +199,8 @@ class NotionExporter:
                     )
                     pbar.update(1)
 
-        self.unpack()
+        self._unpack()
+
+
+if __name__ == "__main__":
+    freeze_support()

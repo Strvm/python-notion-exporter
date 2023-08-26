@@ -19,17 +19,19 @@
 1. **Initialization**:
 
    ```python
-   exporter = NotionExporter(
-       token_v2="YOUR_NOTION_TOKEN",
-       file_token="YOUR_FILE_TOKEN",
-       pages={"Page Name": "Page ID"},
-       export_directory="path/to/save",
-       flatten_export_file_tree=True,
-       export_type=ExportType.MARKDOWN,
-       current_view_export_type=ViewExportType.CURRENT_VIEW,
-       include_files=True,
-       recursive=True
-   )
+   # Important to run in __main__ or in a method due to multiprocessing.
+   if __name__ == "__main__":
+       exporter = NotionExporter(
+           token_v2="YOUR_NOTION_TOKEN",
+           file_token="YOUR_FILE_TOKEN",
+           pages={"Page Name": "Page ID"},
+           export_directory="path/to/save",
+           flatten_export_file_tree=True,
+           export_type=ExportType.MARKDOWN,
+           current_view_export_type=ViewExportType.CURRENT_VIEW,
+           include_files=True,
+           recursive=True
+       )
    ```
 
    You will need to get the `token_v2` and `file_token` values from your Notion cookies. The `pages` dictionary should contain pairs of `page_name: page_id` for each page you want to export.
