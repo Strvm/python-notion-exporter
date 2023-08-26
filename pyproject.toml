@@ -3,7 +3,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "python-notion-exporter"
+name = "python_notion_exporter"
 version = "0.1.0"
 description = "Export and download Notion pages asynchronously."
 authors = ["Romeo Phillips"]

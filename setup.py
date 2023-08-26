@@ -4,11 +4,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="python-notion-exporter",
+    name="python-python_notion_exporter",
     author="Roméo Phillips",
     author_email="phillipsromeo@gmail.com",
     description="Export and download Notion pages asynchronously",
-    keywords="notion, notion-api, notion-exporter, notion-downloader, notion-py",
+    keywords="notion, notion-api, python_notion_exporter, notion-downloader, notion-py",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/tomchen/example_pypi_package",
@@ -41,7 +41,7 @@ setuptools.setup(
     },
     # entry_points={
     #     "console_scripts": [  # This can provide executable scripts
-    #         "run=notion-exporter:main",
+    #         "run=python_notion_exporter:main",
     #         # You can execute `run` in bash to run `main()` in src/examplepy/__init__.py
     #     ],
     # },
