@@ -1,5 +1,7 @@
+import enum
 import json
 import logging
+import multiprocessing
 import os
 import shutil
 import time
@@ -10,13 +12,13 @@ import requests
 from tqdm import tqdm
 
 
-class ExportType:
+class ExportType(enum.StrEnum):
     MARKDOWN = "markdown"
     HTML = "html"
     PDF = "pdf"
 
 
-class ViewExportType:
+class ViewExportType(enum.StrEnum):
     CURRENT_VIEW = "currentView"
     ALL = "all"
 
@@ -33,6 +35,7 @@ class NotionExporter:
         current_view_export_type=ViewExportType.CURRENT_VIEW,
         include_files=False,
         recursive=True,
+        workers=multiprocessing.cpu_count(),
     ):
         self.export_name = f"export-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}"
         self.token_v2 = token_v2
@@ -52,6 +55,7 @@ class NotionExporter:
             "content-type": "application/json",
             "cookie": f"token_v2={self.token_v2};",
         }
+        self.workers = workers
         os.makedirs(f"{self.export_directory}{self.export_name}", exist_ok=True)
 
     def to_uuid_format(self, s):
@@ -59,7 +63,7 @@ class NotionExporter:
             return s
         return f"{s[:8]}-{s[8:12]}-{s[12:16]}-{s[16:20]}-{s[20:]}"
 
-    def get_format_options(self, export_type: str, include_files=False):
+    def get_format_options(self, export_type: ExportType, include_files=False):
         format_options = {}
         if export_type == ExportType.PDF:
             format_options["pdfFormat"] = "Letter"
@@ -73,10 +77,10 @@ class NotionExporter:
         url = "https://www.notion.so/api/v3/enqueueTask"
         id = self.to_uuid_format(s=id)
         export_options = {
-            "exportType": self.export_type,
+            "exportType": self.export_type.value,
             "locale": "en",
             "timeZone": "Europe/London",
-            "collectionViewExportType": self.current_view_export_type,
+            "collectionViewExportType": self.current_view_export_type.value,
             "flattenExportFiletree": self.flatten_export_file_tree,
         }
 
@@ -117,7 +121,7 @@ class NotionExporter:
         ).json()["results"]
         return response[0]
 
-    def download(self, url, name):
+    def download(self, url):
         response = requests.request("GET", url, headers=self.download_headers)
         file_name = url.split("/")[-1][100:]
         with open(
@@ -139,7 +143,7 @@ class NotionExporter:
 
         export_url = status.get("status", {}).get("exportURL")
         if export_url:
-            self.download(export_url, name)
+            self.download(export_url)
         else:
             logging.warning(f"Failed to get exportURL for {name}")
 
@@ -179,7 +183,8 @@ class NotionExporter:
                 os.remove(full_file_path)
 
     def process(self):
-        with Pool() as pool:
+        logging.info(f"Exporting {len(self.pages)} pages...")
+        with Pool(processes=self.workers) as pool:
             with tqdm(total=len(self.pages), dynamic_ncols=True) as pbar:
                 for result in pool.imap_unordered(
                     self.process_page, self.pages.items()
@@ -192,18 +197,6 @@ class NotionExporter:
                     pbar.set_postfix_str(
                         f"Exporting {name}... {pagesExported} pages already exported"
                     )
-                    pbar.update(1)  # Update the bar by one task completion
+                    pbar.update(1)
 
         self.unpack()
-
-
-if __name__ == "__main__":
-    export = NotionExporter(
-        token_v2=TOKEN_V2,
-        file_token=FILE_TOKEN,
-        pages=PAGES,
-        export_directory="test",
-        export_type=ExportType.PDF,
-        include_files=True,
-    )
-    export.process()
