@@ -36,4 +36,8 @@ setuptools.setup(
     extras_require={
         "dev": ["check-manifest"],
     },
+    install_requires=[
+        "requests",
+        "tqdm",
+    ],
 )
