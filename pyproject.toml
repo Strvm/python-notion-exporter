@@ -1,0 +1,22 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "python-notion-exporter"
+version = "0.1.0"
+description = "Export and download Notion pages asynchronously."
+authors = ["Romeo Phillips"]
+
+[tool.poetry.dependencies]
+python = "^3.7"  # or whichever version you're targeting
+certifi = "2023.7.22"
+charset-normalizer = "3.2.0"
+idna = "3.4"
+requests = "2.31.0"
+tqdm = "4.66.1"
+urllib3 = "2.0.4"
+
+
+[build]
+script = "build.py"
