@@ -40,6 +40,7 @@
            include_files=True,
            recursive=True
        )
+       exporter.process()
    ```
 
    You will need to get the `token_v2` and `file_token` values from your Notion cookies. The `pages` dictionary should contain pairs of `page_name: page_id` for each page you want to export.
