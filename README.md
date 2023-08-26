@@ -34,6 +34,25 @@
 
    You will need to get the `token_v2` and `file_token` values from your Notion cookies. The `pages` dictionary should contain pairs of `page_name: page_id` for each page you want to export.
 
+## Needed Cookies
+
+To export anything from Notion, one needs to authenticate oneself with some
+Cookies (like a browser would). These cookies are called `token_v2` and
+`file_token`. They are set on all requests of a logged in user when using the
+Notion web-app.
+
+
+### How to retrieve the Cookies?
+
+- Go to [notion.so](https://notion.so).
+- Log in with your account.
+- Open the developer tools of your browser, open Application > Storage > Cookies
+  (Chrome); Storage tab (Firefox).
+- Copy the value of the Cookies called `token_v2` and `file_token` and paste
+  them somewhere safe.
+- ⚠️ If you don't find `file_token`, you need to have at least had exported a file manually once.
+- Those cookies have a **1 year validity**, so you don't need to do this often.
+
 2. **Process Exports**:
 
    ```python
