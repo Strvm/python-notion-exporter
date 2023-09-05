@@ -27,7 +27,6 @@
    ```python
    from python_notion_exporter import NotionExporter
    
-   # Important to run in __main__ or in a method due to multiprocessing.
    if __name__ == "__main__":
        exporter = NotionExporter(
            token_v2="YOUR_NOTION_TOKEN",

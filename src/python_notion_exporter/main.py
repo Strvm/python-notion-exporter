@@ -1,24 +1,24 @@
-import enum
+import concurrent
 import json
 import logging
 import multiprocessing
 import os
 import shutil
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from multiprocessing import Pool, freeze_support
 
 import requests
 from tqdm import tqdm
 
 
-class ExportType(enum.StrEnum):
+class ExportType():
     MARKDOWN = "markdown"
     HTML = "html"
     PDF = "pdf"
 
 
-class ViewExportType(enum.StrEnum):
+class ViewExportType():
     CURRENT_VIEW = "currentView"
     ALL = "all"
 
@@ -77,10 +77,10 @@ class NotionExporter:
         url = "https://www.notion.so/api/v3/enqueueTask"
         id = self._to_uuid_format(s=id)
         export_options = {
-            "exportType": self.export_type.value,
+            "exportType": self.export_type,
             "locale": "en",
             "timeZone": "Europe/London",
-            "collectionViewExportType": self.current_view_export_type.value,
+            "collectionViewExportType": self.current_view_export_type,
             "flattenExportFiletree": self.flatten_export_file_tree,
         }
 
@@ -184,11 +184,12 @@ class NotionExporter:
 
     def process(self):
         logging.info(f"Exporting {len(self.pages)} pages...")
-        with Pool(processes=self.workers) as pool:
+
+        with ThreadPoolExecutor(max_workers=self.workers) as executor:
             with tqdm(total=len(self.pages), dynamic_ncols=True) as pbar:
-                for result in pool.imap_unordered(
-                    self._process_page, self.pages.items()
-                ):
+                futures = {executor.submit(self._process_page, item): item for item in self.pages.items()}
+                for future in concurrent.futures.as_completed(futures):
+                    result = future.result()
                     if result["state"] == "failure":
                         continue
                     name = result["name"]
@@ -200,7 +201,3 @@ class NotionExporter:
                     pbar.update(1)
 
         self._unpack()
-
-
-if __name__ == "__main__":
-    freeze_support()
