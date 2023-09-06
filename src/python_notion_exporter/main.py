@@ -13,29 +13,35 @@ from tqdm import tqdm
 
 
 class ExportType:
+    """Represent the different types of export formats."""
+
     MARKDOWN = "markdown"
     HTML = "html"
     PDF = "pdf"
 
 
 class ViewExportType:
+    """Represent the different view types for export."""
+
     CURRENT_VIEW = "currentView"
     ALL = "all"
 
 
 class NotionExporter:
+    """Class to handle exporting Notion content."""
+
     def __init__(
         self,
         token_v2: str,
         file_token: str,
         pages: dict,
-        export_directory=None,
-        flatten_export_file_tree=True,
-        export_type=ExportType.MARKDOWN,
-        current_view_export_type=ViewExportType.CURRENT_VIEW,
-        include_files=False,
-        recursive=True,
-        workers=multiprocessing.cpu_count(),
+        export_directory: str = None,
+        flatten_export_file_tree: bool = True,
+        export_type: ExportType = ExportType.MARKDOWN,
+        current_view_export_type: ViewExportType = ViewExportType.CURRENT_VIEW,
+        include_files: bool = False,
+        recursive: bool = True,
+        workers: int = multiprocessing.cpu_count(),
     ):
         """
         Initializes the NotionExporter class.
@@ -74,21 +80,28 @@ class NotionExporter:
         self.workers = workers
         os.makedirs(f"{self.export_directory}{self.export_name}", exist_ok=True)
 
-    def _to_uuid_format(self, s):
+    def _to_uuid_format(self, input_string: str) -> str:
         """
         Converts a string to UUID format.
 
         Args:
-            s (str): The input string.
+            input_string (str): The input string.
 
         Returns:
             str: The string in UUID format.
         """
-        if "-" == s[8] and "-" == s[13] and "-" == s[18] and "-" == s[23]:
-            return s
-        return f"{s[:8]}-{s[8:12]}-{s[12:16]}-{s[16:20]}-{s[20:]}"
+        if (
+            "-" == input_string[8]
+            and "-" == input_string[13]
+            and "-" == input_string[18]
+            and "-" == input_string[23]
+        ):
+            return input_string
+        return f"{input_string[:8]}-{input_string[8:12]}-{input_string[12:16]}-{input_string[16:20]}-{input_string[20:]}"
 
-    def _get_format_options(self, export_type: ExportType, include_files=False):
+    def _get_format_options(
+        self, export_type: ExportType, include_files: bool = False
+    ) -> dict:
         """
         Retrieves format options based on the export type and whether to include files.
 
@@ -108,18 +121,18 @@ class NotionExporter:
 
         return format_options
 
-    def _export(self, id):
+    def _export(self, page_id: str) -> str:
         """
         Initiates the export of a Notion page.
 
         Args:
-            id (str): The ID of the Notion page.
+            page_id (str): The ID of the Notion page.
 
         Returns:
             str: The task ID of the initiated export.
         """
         url = "https://www.notion.so/api/v3/enqueueTask"
-        id = self._to_uuid_format(s=id)
+        page_id = self._to_uuid_format(input_string=page_id)
         export_options = {
             "exportType": self.export_type,
             "locale": "en",
@@ -141,7 +154,7 @@ class NotionExporter:
                     "eventName": "exportBlock",
                     "request": {
                         "block": {
-                            "id": id,
+                            "id": page_id,
                         },
                         "recursive": self.recursive,
                         "exportOptions": export_options,
@@ -155,7 +168,7 @@ class NotionExporter:
         ).json()
         return response["taskId"]
 
-    def _get_status(self, task_id):
+    def _get_status(self, task_id: str) -> dict:
         """
         Fetches the status of an export task.
 
@@ -174,7 +187,7 @@ class NotionExporter:
         ).json()["results"]
         return response[0]
 
-    def _download(self, url):
+    def _download(self, url: str):
         """
         Downloads an exported file from a given URL.
 
@@ -189,7 +202,7 @@ class NotionExporter:
         ) as f:
             f.write(response.content)
 
-    def _process_page(self, page_details):
+    def _process_page(self, page_details: tuple) -> dict:
         """
         Processes an individual Notion page for export.
 
@@ -222,7 +235,7 @@ class NotionExporter:
             "pagesExported": pages_exported,
         }
 
-    def _wait_for_export_completion(self, task_id):
+    def _wait_for_export_completion(self, task_id: str) -> tuple[dict, str, str, int]:
         """
         Waits until a given export task completes or fails.
 
