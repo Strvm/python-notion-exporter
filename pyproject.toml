@@ -9,14 +9,10 @@ description = "Export and download Notion pages asynchronously."
 authors = ["Romeo Phillips"]
 
 [tool.poetry.dependencies]
-python = "^3.7"  # or whichever version you're targeting
-certifi = "2023.7.22"
-charset-normalizer = "3.2.0"
-idna = "3.4"
+python = "^3.7"
 requests = "2.31.0"
 tqdm = "4.66.1"
 urllib3 = "2.0.4"
-wheel = "0.41.2"
 
 
 [build]
