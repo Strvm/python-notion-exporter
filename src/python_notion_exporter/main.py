@@ -42,6 +42,7 @@ class NotionExporter:
         include_files: bool = False,
         recursive: bool = True,
         workers: int = multiprocessing.cpu_count(),
+        export_name: str = None,
     ):
         """
         Initializes the NotionExporter class.
@@ -57,9 +58,14 @@ class NotionExporter:
             include_files (bool, optional): If True, includes files in the export. Defaults to False.
             recursive (bool, optional): If True, exports will be recursive. Defaults to True.
             workers (int, optional): Number of worker threads for exporting. Defaults to the number of CPUs available.
+            export_name (str, optional): Name of the export. Defaults to the current date and time.
         """
 
-        self.export_name = f"export-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}"
+        self.export_name = (
+            f"export-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}"
+            if not export_name
+            else export_name
+        )
         self.token_v2 = token_v2
         self.file_token = file_token
         self.include_files = include_files
